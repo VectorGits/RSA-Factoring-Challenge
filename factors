@@ -1,19 +1,23 @@
-#!/usr/bin/python3
-import sys
-import math
+#!/usr/bin/env bash
 
-def factors(n):
-	for x in range(2, int(math.sqrt(n)) + 1):
-		if n % x == 0:
-			return x, n // x
-		return 1, n
-	
-def main():
-	with open(sys.argv[1], 'r') as f:
-		for line in f:
-			n = int(line)
-			p, q = factors(n)
-			print(f"{n} = {p} * {q}")
+# This script is used to factor the modulus of the RSA key pair
+# used to sign the challenge file. The modulus is provided as
+# a command line argument.
 
-if __name__ == '__main__':
-	main()
+factorize() {
+	local n=$1
+	local x=2
+	while (( x * x <= n)); do
+		if (( n % x)); then
+			((x++))
+		else
+			echo "$n=$x*$((n / x))"
+			return
+		fi
+	done
+	echo "$n=1*$n"
+}
+
+while read -r n; do
+	factorize $n
+done < "$1"
