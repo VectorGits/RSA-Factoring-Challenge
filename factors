@@ -4,20 +4,39 @@
 # used to sign the challenge file. The modulus is provided as
 # a command line argument.
 
-factorize() {
-	local n=$1
-	local x=2
-	while (( x * x <= n)); do
-		if (( n % x)); then
-			((x++))
-		else
-			echo "$n=$x*$((n / x))"
-			return
-		fi
-	done
-	echo "$n=1*$n"
+check_factor() {
+	if [$# -ne 3];
+	then
+		args=("$@")
+		count=0
+		num2=1
+		for x in ${args[*]};
+		do
+			if [ $count -gt 1];
+			then
+				num2=$(echo $a*$num2 | bc)
+			fi
+			count=$((count+1))
+		done
+	else
+		num2=$3
+	fi
+
+	num1=$2
+	num=$(echo "$1" | tr ':' '=')
+
+	result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	if ((result == 1));
+	then
+		numcp=$num1
+		num1=$num2
+		num2=$numcp
+	fi
+
+	echo "$num$num1*$num2"
 }
 
 while read -r n; do
-	factorize $n
+	result=$(factor "$n")
+	check_factor $result
 done < "$1"
